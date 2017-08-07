@@ -1,0 +1,349 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Guess Which </title>
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/reconnecting-websocket/1.0.0/reconnecting-websocket.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.98.2/css/materialize.min.css">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link href='https://fonts.googleapis.com/css?family=Roboto:400,100,‌​100italic,300,300ita‌​lic,400italic,500,50‌​0italic,700,700itali‌​c,900italic,900' rel='stylesheet' type='text/css'>
+  <meta name="description" content="Guess Which: A Human-AI Team Task">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <script type="text/javascript" src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mousetrap/1.6.1/mousetrap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.98.2/js/materialize.min.js"></script>
+  <script src='https://cdn.rawgit.com/admsev/jquery-play-sound/master/jquery.playSound.js'></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+  <script src="{% static 'js/queryparam_helper.js' %}"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/Sortable/1.5.1/Sortable.min.js"></script>
+  <script src="https://ajax.aspnetcdn.com/ajax/jquery.validate/1.15.0/jquery.validate.min.js"></script>
+  <script src="https://d3js.org/d3.v3.js"></script>
+  <script type="text/javascript" src="{% static 'js/mixitup.min.js' %}"></script>
+  <script type="text/javascript">
+    $(window).load(function() {
+      // Animate loader off screen
+      $(".se-pre-con").fadeOut("slow");;
+    });
+  </script>
+
+  <style type="text/css">
+    .no-js #loader { display: none;  }
+    .js #loader { display: block; position: absolute; left: 100px; top: 0; }
+    .se-pre-con {
+      position: fixed;
+      left: 0px;
+      top: 0px;
+      width: 100%;
+      height: 100%;
+      z-index: 9999;
+      background: url("static/images/Preloader_2.gif") center no-repeat #fff;
+    }
+  </style>
+</head>
+<style type="text/css">
+  body, h1, h2, h3, h4, p{
+    font-family: 'Roboto', sans-serif !important;
+    font-weight: 300 !important;
+  }
+
+  .side-nav{
+    z-index: -1;
+  }
+  .side-nav li{
+    height: 60px;
+  }
+
+  .card-panel{
+    border-radius: 20px;
+    padding: 10px;
+    margin: 0 0 0;
+    display: inline-block;
+  }
+  nav .nav-wrapper{
+    background: #3B5998 !important;
+  }
+  .message_typing{
+    height: 50px;
+    z-index: 5;
+    /*margin-top: 20px !important;*/
+  }
+  #question{
+    padding-left: 1em;
+    font-size: 16px;
+    margin: 0 0 0 0;
+  }
+  input[type=text]:focus:not([readonly]){
+    border-bottom: 0 !important;
+    box-shadow: 0 0 0 0 !important;
+  }
+
+  .radio-label{
+    position: static;
+    padding-bottom: 10px;
+  }
+
+  .chatContainer {
+      border: 1px;
+      width: inherit !important;
+      display: block;
+      z-index: 1;
+      top: auto;
+      min-height: 85%;
+      min-height: 90%;
+  }
+
+  .message_typing {}
+
+  .messageInputField {
+      color: white;
+      position: fixed;
+      margin: 0;
+      width: 100%;
+      background: #3B5998 !important;
+  }
+
+  .messages {
+      overflow-y: scroll;
+      overflow-x: hidden;
+  }
+
+  .sampleImagesContainer {
+      /*margin: 0 !important;*/
+      padding: 0 !important;
+      margin-bottom: 1px;
+      margin-right: 1px;
+      position: relative;
+      width: 19.9% !important;
+  }
+
+  .sampleImage {
+      max-width: none;
+  }
+
+  .sampleImage:hover {
+      opacity: 0.8;
+  }
+
+  .ignoreImage:hover a{
+      display: inline-block !important;
+      transform: translate(-50%, -50%) !important;
+    }
+.sampleImagesContainer:hover a {
+      display: inline-block !important;
+      transform: translate(-50%, -50%) !important;
+  }
+
+  a.selectImage, a.fullscreen, .thumb_down_icon, a.ignoreImage {
+      display: none;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+  }
+
+  .instructionsList li {
+      display: list-item;
+      float: none;
+      font-size: 18px;
+  }
+
+  .side-nav {
+      height: 100vh;
+  }
+</style>
+<style type="text/css">
+  img {
+      display: block;
+      max-width: 100%;
+  }
+
+  .sampleImage {
+      width: 100%;
+      position: relative;
+      height: 22.5vh !important;
+  }
+
+  .chatBoxContainer {
+      position: fixed;
+      padding-left: 0 !important;
+  }
+
+  .ChatBoxCardContentDiv {
+      padding: 0 !important;
+  }
+
+  .paragraphText {
+      font-size: 18px;
+  }
+
+  .dropdown-content li>a,
+  .dropdown-content li>span {
+      color: black;
+  }
+/*
+  .materialboxed:not(.active) {
+      height: 22.5vh !important;
+  }
+*/
+  .imagesParentContainer {
+      margin-top: 10px;
+  }
+
+  .highlight-image {
+      position: relative;
+      outline: 5px solid yellow;
+      z-index: 1;
+  }
+
+  .highlight-green {
+      position: relative;
+      outline: 5px solid green;
+      z-index: 2;
+  }
+
+  #answer-selectized,
+  .option {
+      font-size: 16px;
+  }
+
+  .selectize-control.single .selectize-input:after {
+      display: none;
+  }
+
+  .selectize-input {
+      line-height: 45px;
+  }
+
+  .imageRank {
+      top: 0;
+      font-size: 25px;
+      padding-left: 5px;
+      position: absolute;
+      color: yellow;
+  }
+
+  .imageScore {
+      bottom: 0;
+      font-size: 15px;
+      font-weight: 500 !important;
+      padding-left: 5px;
+      position: absolute;
+      color: yellow;
+  }
+</style>
+<body>
+  <div class="se-pre-con"></div>
+
+  <header>
+  {% block header%}
+
+  <ul id="dropdownSelectDifficulty" class="dropdown-content">
+    <li><a href="?level=easy">Easy</a></li>
+    <li class="divider"></li>
+    <li><a href="?level=medium">Medium</a></li>
+    <li class="divider"></li>
+    <li><a href="?level=hard">Hard</a></li>
+  </ul>
+
+  <ul id="dropdownSelectMode" class="dropdown-content">
+    <li><a href="?mode=random">Random</a></li>
+    <li class="divider"></li>
+    <li><a href="?mode=sequential">Normal</a></li>
+  </ul>
+
+  <div class="navbar-fixed">
+    <nav>
+      <div class="nav-wrapper">
+          <a href="#" class="brand-logo left" style="font-weight: 200; padding-left: 20px;">GuessWhich Game</a>
+          <ul class="right" style="font-size: 20px; padding-right: 20px;">
+            <li style="padding-right: 25px;"><span>Total points earned: </span><b id="total_bonus_so_far">{{ total_bonus_so_far }}</b></li>
+            <li style="padding-right: 25px;"><span>Possible points for this game: </span><b id="bonus_for_this_game">{{ max_game_bonus }}</b></li>
+            <!-- <li id="gameRound" style="padding-right: 25px;"></li> -->
+          </ul>
+          <ul id="nav-mobile" class="right hide-on-med-and-down">
+          <!-- <li><a class="dropdown-button" href="#!" data-activates="dropdownSelectMode">1st Question Seed<i class="material-icons right">arrow_drop_down</i></a></li> -->
+         </ul>
+      </div>
+    </nav>
+  </div>
+
+  {% endblock %}
+
+  {% block sidebar %}
+  {% endblock %}
+  </header>
+
+
+  {% block images %}
+
+  {% endblock %}
+
+  {% block messages %}
+
+  {% endblock %}
+
+  {% block message_typing %}
+
+  {% endblock %}
+
+
+  {% block intro %}
+
+  {% endblock %}
+  <script type="text/javascript">
+  var mode = null;
+
+  function getParameterByName(name, url) {
+    if (!url) {
+      url = window.location.href;
+    }
+    name = name.replace(/[\[\]]/g, "\\$&");
+    var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
+    results = regex.exec(url);
+    if (!results) return null;
+    if (!results[2]) return '';
+    return decodeURIComponent(results[2].replace(/\+/g, " "));
+  }
+
+  var gameId = {{ next_game_id }};
+  var bot = getParameterByName("bot");
+  var level = getParameterByName("level");
+
+  if (level == ""){
+    level = "medium";
+  }
+
+  $(document).ready(function(){
+    $('.imagesParentContainer').height($(window).height() - $('.navbar-fixed').height() - $('.navbar-fixed').height()/2);
+    $('.chatBoxContainer').height($(window).height() - 2 * $('.navbar-fixed').height());
+    $('.messages').css('max-height', $(window).height() - 2 * $('.navbar-fixed').height());
+    $('.messages').css('min-height', $(window).height() - 2 * $('.navbar-fixed').height());
+    // $('.materialboxed').materialbox();
+
+    var level = getParameterByName('level'); // "lorem"
+    console.log("GAME ID IS");
+    $("#gameRound").html("Game " + (Number(gameId) + 1) + "/" + num_of_games_in_a_hit); 
+    mode = getParameterByName('mode');
+    task = getParameterByName('task');
+    console.log(level);
+    if (level){
+      $("#currentDifficulty").text("Difficulty: " + level);
+    } else {
+      $("#currentDifficulty").text("Difficulty: Medium");
+    }
+  });
+
+  </script>
+<script type="text/javascript">
+  function updateQueryStringParameter(uri, key, value) {
+  var re = new RegExp("([?&])" + key + "=.*?(&|$)", "i");
+  var separator = uri.indexOf('?') !== -1 ? "&" : "?";
+  if (uri.match(re)) {
+    return uri.replace(re, '$1' + key + "=" + value + '$2');
+  }
+  else {
+    return uri + separator + key + "=" + value;
+  }
+}
+</script>
+</body>
+</html>

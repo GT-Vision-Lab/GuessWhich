@@ -1,0 +1,61 @@
+{% extends 'amt/base.html' %}
+{% load static %}
+{% load range %}
+
+{% block sidebar %}
+{% endblock %}
+
+{% block images %}
+{% endblock %}
+
+{% block message_typing %}
+{% endblock %}
+
+{% block intro %}
+<style type="text/css">
+p{
+  font-size: 18px !important;
+}
+.input-field{
+  float: none !important;
+  margin: 0 auto;
+}
+</style>
+<div class="container">
+  <div class="row center">
+    <h2 align="center">Welcome!</h2>
+    <img src="{% static 'images/bot.jpg'%}" class="img img-responsive circle">
+    <h4>Hi, My name is Vicki. I am an AI.</h4>
+    <p>I have been assigned one target image. I am not allowed to show you the image, but you can ask me questions about it. When ready, submit one of the images on the left as your best guess. We can only make <b>3 guesses</b>. I will try to answer your questions, but I am not perfect. But I hope we can work together to find the image as quickly as possible!</p>
+  </div>
+  
+  <div class="row">
+    <form action="." method="post" class="col s12 center">
+      {% csrf_token %}
+      <div class="row" align="center">
+        <div class="input-field col s12 m8 l6 center">
+          <select name="level">
+            <option value="easy">Easy</option>
+            <option value="medium" selected>Medium</option>
+            <option value="hard">Hard</option>
+          </select>
+          <label>Select difficulty levek</label>
+        </div>
+      </div>
+
+      <div class="row" align="center">
+        <div class="col s12">
+          <input type="submit" value="Let's do this!" class="btn btn-large blue">
+        </div>
+      </div>
+    </form>
+  </div>
+
+</div>
+<script type="text/javascript">
+    $(document).ready(function() {
+      $('select').material_select();
+    });  
+</script>
+
+{% endblock  %}

@@ -1,0 +1,40 @@
+<form id='mturk_form' action="MTURK_FORM_TO_SUBMIT" method="POST">
+    {% csrf_token %}
+    <input type="hidden" id="assignmentId" name="assignmentId" value='MTURK_ASSIGNMENT_ID'>
+    <input type="hidden" id="workerId" name="workerId" value='MTURK_WORKER_ID'>
+    <input type="hidden" id="hitDuration" name="hitDuration" value='HIT_DURATION'>
+    <input type="hidden" id="hitResult" name="hitResult" value='HIT_RESULT'>
+    <input type="hidden" id="hitComment" name="hitComment" value='HIT_COMMENT'>
+</form>
+
+<script type="text/javascript">
+var hit_id = gup('hitId');
+var assignment_id = gup('assignmentId');
+var worker_id = gup('workerId');
+
+document.getElementById('assignmentId').value = assignment_id;
+document.getElementById('workerId').value = worker_id;
+
+// Used in main to decide to submit form or not (i.e., not loaded via AMT).
+var submitAction;
+var form = document.getElementById('mturk_form');
+
+// Gets whether it is sandbox or real AMT (or nothing)
+var service = decode(gup('turkSubmitTo'));
+
+if (service.length > 0) {
+    submitAction = true;
+    form.action = service + '/mturk/externalSubmit';
+} else {
+    submitAction = false;
+    form.action = '';
+}
+if (assignment_id == "ASSIGNMENT_ID_NOT_AVAILABLE") {
+	$("#question").attr("disabled", "disabled");
+    $(".selectImage").addClass("disabled");
+    // If we're previewing, disable the button and give it a helpful message
+    $('body').bind('click', function() {
+        Materialize.toast('Please ACCEPT the HIT!', 4000);
+    })
+}
+</script>

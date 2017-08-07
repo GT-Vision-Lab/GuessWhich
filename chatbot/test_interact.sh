@@ -1,0 +1,1 @@
+srun -p debug --gres gpu:1 th interact.lua 

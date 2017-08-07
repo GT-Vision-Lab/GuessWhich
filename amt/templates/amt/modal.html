@@ -1,0 +1,37 @@
+<div id="plotModal" class="modal modal-fixed-footer">
+  <div class="modal-content center">
+    <h4>Thanks for playing the game!</h4>
+    <div class="divider"></div>
+      <div class="row">
+      <h5>The target image is</h5>
+      <img src="{{ target_image }}" class="center img-responsive" style="display: inline;" height="300px">
+      <br>
+      <br>
+      <!-- <a id="gameEndButton" class="btn btn-large blue waves-effect waves-light center">Proceed to next game</a> -->
+    </div>
+  </div>
+</div>
+
+<div id="hitEndModal" class="modal modal-fixed-footer">
+  <div class="modal-content center">
+    <h4>Thanks for participating in the HIT!</h4>
+    <div class="divider"></div>
+      <div class="row center">
+      {% include 'amt/feedback.html' %}      
+      <a id="hitEndButton" class="btn btn-large blue waves-effect waves-light center">Submit HIT</a>
+    </div>
+  </div>
+</div>
+
+<div id="instructionsModal" class="modal modal-fixed-footer" style="height: 70%;">
+  <div class="modal-content center">
+      <h4 class="center">Qbot-Abot Conversation</h4>
+      <!-- <img src="{{ target_image }}" class="center img-responsive" style="display: inline;" height="300px"> -->
+      <p><b style="color: green;">&#x25A2;</b> : Green colored outline depicts the target image</p>
+      <p><b style="color: yellow;">&#x25A2;</b> : Yellow colored outline depicts the image chosen by Qbot after each round</p>
+      <p class="red-text" style="font-size: 20px;">Press 'START' button below to get started!</p>
+  </div>
+  <div class="modal-footer">
+      <a href="#!" class="modal-action modal-close waves-effect waves-light btn-flat blue white-text">START</a>
+  </div>
+</div>

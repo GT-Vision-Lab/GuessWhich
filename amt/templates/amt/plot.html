@@ -1,0 +1,105 @@
+<style>
+  .axis path,
+  .axis line{
+    fill: none;
+    stroke: black;
+  }
+
+  .line{
+    fill: none;
+    stroke: blue;
+    stroke-width: 2px;
+  }
+
+  .tick text{
+    font-size: 12px;
+  }
+
+  .tick line{
+    opacity: 0.2;
+  }
+
+</style>
+<div id="line"></div>
+<script>
+  function generateGraph() {
+
+    var margin = {top: 20, right: 50, bottom: 50, left: 50},
+        width = 480 - margin.left - margin.right,
+        height = 250 - margin.top - margin.bottom;
+
+    var data = [
+        {round: 1, rank: 20},
+        {round: 2, rank: 16},
+        {round: 3, rank: 17},
+        {round: 4, rank: 8},
+        {round: 5, rank: 9},
+        {round: 6, rank: 11},
+        {round: 7, rank: 6},
+        {round: 8, rank: 5},
+        {round: 9, rank: 6},
+        {round: 10, rank: 4}
+    ];
+    for (var i=0; i<target_image_rank_list.length; i++){
+      data[i].rank = target_image_rank_list[i];
+    }
+
+    var xScale = d3.scale.linear()
+        .domain([1, 10])
+        .range([0, width]);
+
+    var yScale = d3.scale.linear()
+        .domain([1, 20])
+        .range([height, 0]);
+
+    var xAxis = d3.svg.axis()
+        .scale(xScale)
+        .orient("bottom")
+        .innerTickSize(-height)
+        .outerTickSize(0)
+        .tickPadding(10)
+        .ticks(10);
+
+    var yAxis = d3.svg.axis()
+        .scale(yScale)
+        .orient("left")
+        .innerTickSize(-width)
+        .outerTickSize(0)
+        .tickPadding(5)
+        .ticks(5);
+
+    var line = d3.svg.line()
+        .x(function(d) { return xScale(d.round); })
+        .y(function(d) { return yScale(d.rank); });
+
+    var svg = d3.select("#line").append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+      .append("g")
+        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+      svg.append("g")
+          .attr("class", "x axis")
+          .attr("transform", "translate(0," + height + ")")
+          .call(xAxis)
+
+      svg.append("g")
+          .attr("class", "y axis")
+          .call(yAxis)
+
+      svg.append("path")
+          .data([data])
+          .attr("class", "line")
+          .attr("d", line);
+
+    svg.append("text")
+        .attr("text-anchor", "middle")
+        .attr("transform", "translate("+ (-margin.left/1.5) +","+(height/2)+")rotate(-90)")
+        .text("Rank of Target Image");
+
+    svg.append("text")
+        .attr("text-anchor", "middle")
+        .attr("transform", "translate("+ (width/2) +","+(height+(margin.bottom/1.2))+")")
+        .text("Round of Conversation");
+  }
+</script>
