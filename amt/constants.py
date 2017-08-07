@@ -4,7 +4,7 @@ import os
 import sys
 sys.path.append(os.path.join(settings.BASE_DIR, 'chatbot'))
 
-POOL_IMAGES_URL = os.path.join(settings.MEDIA_URL, 'coco', 'val2014/')
+POOL_IMAGES_URL = os.path.join(settings.MEDIA_URL, 'val2014/')
 
 BOT_INTORDUCTION_MESSAGE = [
     "Hi, my name is Abot. I am an Artificial Intelligence." \

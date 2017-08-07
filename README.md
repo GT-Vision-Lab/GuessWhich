@@ -5,7 +5,7 @@
 ## Introduction
 
 **[Evaluating Visual Conversational Agents via Cooperative Human-AI Games][]**  
-Prithvijit Chattopadhyay*, Deshraj Yadav*, Viraj Prabhu, Arjun Chandrashekharan, Stefan Lee, Dhruv Batra, Devi Parikh
+Prithvijit Chattopadhyay*, Deshraj Yadav*, Viraj Prabhu, Arjun Chandrashekharan, Abhishek Das, Stefan Lee, Dhruv Batra, Devi Parikh
 [arxiv.org/abs/1611.08669][1]  
 [HCOMP 2017][4] (Oral)
 
@@ -18,7 +18,7 @@ We measure performance of the human-ALICE team by the number of guesses it takes
 
 ## Installation Instructions
 
-### Installing the Essential requirements
+### Installing the essential requirements
 
 ```shell
 sudo apt-get install -y git python-pip python-dev
@@ -95,8 +95,8 @@ python manage.py migrate
 Open 3 different terminal sessions and run the following commands:
 
 ```shell
-python chatbot/sl_evalaute.py
-python chatbot/rl_evalaute.py
+cd chatbot && python sl_evalaute.py
+cd chatbot && python rl_evalaute.py
 python manage.py runserver
 ```
 
