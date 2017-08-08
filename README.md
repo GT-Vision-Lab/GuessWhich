@@ -4,14 +4,12 @@
 
 ## Introduction
 
-**[Evaluating Visual Conversational Agents via Cooperative Human-AI Games][]**  
+**[Evaluating Visual Conversational Agents via Cooperative Human-AI Games][4]**  
 Prithvijit Chattopadhyay*, Deshraj Yadav*, Viraj Prabhu, Arjun Chandrashekharan, Abhishek Das, Stefan Lee, Dhruv Batra, Devi Parikh
 
 [HCOMP 2017][4] (Oral)
 
 ![Imgur](http://i.imgur.com/MqHoyyB.gif)
-
-<blockquote class="imgur-embed-pub" lang="en" data-id="a/4vRuv"><a href="//imgur.com/4vRuv"></a></blockquote><script async src="//s.imgur.com/min/embed.js" charset="utf-8"></script>
 
 ## Abstract
 
@@ -105,6 +103,20 @@ python manage.py runserver
 ```
 
 You are all set now. Visit http://127.0.0.1:8000 and you will have your demo running successfully.
+
+
+## Cite this work
+
+If you find this code useful, consider citing our work:
+
+```
+@article{visdial_eval,
+  title={Evaluating Visual Conversational Agents via Cooperative Human-AI Games},
+  author={Prithvijit Chattopadhyay and Deshraj Yadav and Viraj Prabhu and Arjun Chandrasekaran and Abhishek Das and Stefan Lee and Dhruv Batra and Devi Parikh},
+  booktitle={Proceedings of the Fifth AAAI Conference on Human Computation and Crowdsourcing (HCOMP)},
+  year={2017}
+}
+```
 
 ## Contributors
 
