@@ -6,8 +6,12 @@
 
 **[Evaluating Visual Conversational Agents via Cooperative Human-AI Games][]**  
 Prithvijit Chattopadhyay*, Deshraj Yadav*, Viraj Prabhu, Arjun Chandrashekharan, Abhishek Das, Stefan Lee, Dhruv Batra, Devi Parikh
-[arxiv.org/abs/1611.08669][1]  
+
 [HCOMP 2017][4] (Oral)
+
+![Imgur](http://i.imgur.com/MqHoyyB.gif)
+
+<blockquote class="imgur-embed-pub" lang="en" data-id="a/4vRuv"><a href="//imgur.com/4vRuv"></a></blockquote><script async src="//s.imgur.com/min/embed.js" charset="utf-8"></script>
 
 ## Abstract
 
