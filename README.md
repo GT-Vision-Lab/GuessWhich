@@ -1,15 +1,10 @@
-<p align="center"><img width="70%" src="static/img/guesswhich.png"/></p>
-
----------------------------------------------------------------------------
+# GuessWhich
 
 ## Introduction
 
-**[Evaluating Visual Conversational Agents via Cooperative Human-AI Games][4]**  
-Prithvijit Chattopadhyay*, Deshraj Yadav*, Viraj Prabhu, Arjun Chandrashekharan, Abhishek Das, Stefan Lee, Dhruv Batra, Devi Parikh
-
+**Evaluating Visual Conversational Agents via Cooperative Human-AI Games**  
+Prithvijit Chattopadhyay*, Deshraj Yadav*, Viraj Prabhu, Arjun Chandrashekharan, Abhishek Das, Stefan Lee, Dhruv Batra, Devi Parikh  
 [HCOMP 2017][4] (Oral)
-
-![Imgur](http://i.imgur.com/MqHoyyB.gif)
 
 ## Abstract
 
