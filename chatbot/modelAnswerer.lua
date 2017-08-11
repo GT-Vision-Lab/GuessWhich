@@ -2,7 +2,6 @@
 require 'optim_updates'
 require 'xlua'
 require 'hdf5'
-require 'ReplaceZero'
 
 local utils = require 'utils'
 
@@ -14,20 +13,15 @@ function VisDialAModel:__init(params)
     self.params = params;
     -- print(params)
     -- build the model - encoder, decoder and answerNet
-    -- print(params.model_name)
     local modelFile = string.format('%s/specificModel.lua', params.model_name);
     local model = dofile(modelFile);
     enc, dec = model:buildSpecificModel(params);
     -- add methods from specific model
     local methods = {'forwardConnect', 'backwardConnect',
-                    'forwardBackward', 'retrieveBatch', 'encoderPass',
-                    'forwardBackwardReinforce', 'forwardBackwardAnnealedReinforceBatched',
-                    'multitaskReinforceForwardBackward'};
+                    'forwardBackward', 'retrieveBatch', 'encoderPass'};
     for key, value in pairs(methods) do self[value] = model[value]; end
 
-    -- print models
     print('Encoder:\n'); print(enc);
-    -- print('Decoder:\n'); print(dec);
 
     -- criterion
     self.criterion = nn.ClassNLLCriterion();
@@ -41,7 +35,7 @@ function VisDialAModel:__init(params)
     -- initialize weights
     self.wrapper = require('weight-init')(self.wrapper, 'xavier');
     -- ship to gpu if necessary
-    if params.gpuid >= 0 then 
+    if params.gpuid >= 0 then
         self.wrapper = self.wrapper:cuda();
         self.criterion = self.criterion:cuda();
     end
@@ -49,7 +43,7 @@ function VisDialAModel:__init(params)
     self.encoder = self.wrapper:get(1);
     self.decoder = self.wrapper:get(2);
     self.wrapperW, self.wrapperdW = self.wrapper:getParameters();
-    
+
     self.wrapper:training();
 
     -- setup the optimizer
@@ -68,7 +62,6 @@ function VisDialAModel:trainIteration(dataloader)
 
     -- call the internal function for model specific actions
     local curLoss = self:forwardBackward(batch);
-    -- print(curLoss)
     -- count the number of tokens
     local numTokens = torch.sum(batch['answer_out']:gt(0));
 
@@ -82,30 +75,6 @@ function VisDialAModel:trainIteration(dataloader)
     self.wrapperdW:clamp(-5.0, 5.0);
 
     -- update parameters
-    --rmsprop(self.wrapperW, self.wrapperdW, self.optims);
-    adam(self.wrapperW, self.wrapperdW, self.optims);
-
-    -- decay learning rate, if needed
-    if self.optims.learningRate > self.params.minLRate then
-        self.optims.learningRate = self.optims.learningRate * 
-                                        self.params.lrDecayRate;
-    end
-end
-
--- One iteration of reinforce -- forward and backward pass
-function VisDialAModel:reinforce(imgFeats, ques, hist, ansIn, r_t, iter)
-    -- clear the gradients
-    self.wrapper:zeroGradParameters();
-
-    params = {curriculum = false, iter = iter}
-
-    -- call the internal function for model specific actions
-    self:forwardBackwardReinforce(imgFeats, ques, hist, ansIn, r_t, params);
-
-    -- clamp gradients
-    self.wrapperdW:clamp(-5.0, 5.0);
-
-    -- update parameters
     adam(self.wrapperW, self.wrapperdW, self.optims);
 
     -- decay learning rate, if needed
@@ -113,80 +82,8 @@ function VisDialAModel:reinforce(imgFeats, ques, hist, ansIn, r_t, iter)
         self.optims.learningRate = self.optims.learningRate *
                                         self.params.lrDecayRate;
     end
-
-    collectgarbage()
 end
--- SL for t rounds, RL for n - t rounds
-function VisDialAModel:annealedReinforceBatched(batch, r_t, numSLRounds, opt)
-    -- clear the gradients
-    self.wrapper:zeroGradParameters();
 
-    params = {curriculum = false, batchSize = opt.batchSize, numSLRounds = numSLRounds}
-
-    -- call the internal function for model specific actions
-    local curLoss = self:forwardBackwardAnnealedReinforceBatched(batch, r_t, params);
-
-    local numTokens = torch.sum(batch[5]:gt(0));
-    local seqLoss = 0
-    if curLoss ~= nil then
-        seqLoss = curLoss / numTokens
-    end
-
-    -- update running average of loss
-    if runningALoss > 0 then
-        runningALoss = 0.95 * runningALoss + 0.05 * seqLoss;
-    else
-        runningALoss = seqLoss
-    end
-
-    -- clamp gradients
-    self.wrapperdW:clamp(-5.0, 5.0);
-
-    -- update parameters
-    adam(self.wrapperW, self.wrapperdW, self.optims);
-
-    -- decay learning rate, if needed
-    if self.optims.learningRate > self.params.minLRate then
-        self.optims.learningRate = self.optims.learningRate *
-                                        self.params.lrDecayRate;
-    end
-
-    collectgarbage()
-end
--- SL for t rounds, RL for n - t rounds
-function VisDialAModel:multitaskReinforce(batch, r_t, opt)
-    -- clear the gradients
-    self.wrapper:zeroGradParameters();
-
-    params = {curriculum = false, batchSize = opt.batchSize}
-
-    -- call the internal function for model specific actions
-    local curLoss = self:multitaskReinforceForwardBackward(batch, r_t, opt);
-
-    local numTokens = torch.sum(batch[5]:gt(0));
-    local seqLoss = curLoss / numTokens
-
-    -- update running average of loss
-    if runningALoss > 0 then
-        runningALoss = 0.95 * runningALoss + 0.05 * seqLoss;
-    else
-        runningALoss = seqLoss
-    end
-
-    -- clamp gradients
-    self.wrapperdW:clamp(-5.0, 5.0);
-
-    -- update parameters
-    adam(self.wrapperW, self.wrapperdW, self.optims);
-
-    -- decay learning rate, if needed
-    if self.optims.learningRate > self.params.minLRate then
-        self.optims.learningRate = self.optims.learningRate *
-                                        self.params.lrDecayRate;
-    end
-
-    collectgarbage()
-end
 ---------------------------------------------------------------------
 -- validation performance on test/val
 function VisDialAModel:evaluate(dataloader, dtype)
@@ -203,7 +100,7 @@ function VisDialAModel:evaluate(dataloader, dtype)
         xlua.progress(startId, numThreads);
 
         -- grab a validation batch
-        local batch, nextStartId 
+        local batch, nextStartId
                         = dataloader:getTestBatch(startId, self.params, dtype);
         -- count the number of tokens
         numTokens = numTokens + torch.sum(batch['answer_out']:gt(0));
@@ -214,12 +111,13 @@ function VisDialAModel:evaluate(dataloader, dtype)
 
     -- print the results
     curLoss = curLoss / numTokens;
-    print(string.format('\n%s\tLoss: %f\t Perplexity: %f\n', dtype, 
+    print(string.format('\n%s\tLoss: %f\t Perplexity: %f\n', dtype,
                         curLoss, math.exp(curLoss)));
 
     -- change back to training
     self.wrapper:training();
 end
+
 ---------------------------------------------------------------------
 -- retrieval performance on test/val
 function VisDialAModel:retrieve(dataloader, dtype)
@@ -242,7 +140,7 @@ function VisDialAModel:retrieve(dataloader, dtype)
         xlua.progress(startId, numThreads);
 
         -- grab a validation batch
-        local batch, nextStartId = 
+        local batch, nextStartId =
                         dataloader:getTestBatch(startId, self.params, dtype);
 
         -- Call retrieve function for specific model, and store ranks
@@ -257,14 +155,13 @@ function VisDialAModel:retrieve(dataloader, dtype)
     print(string.format('\n%s - Retrieval:', dtype))
     utils.processRanks(ranks);
 
-    -- os.exit()
-
     -- change back to training
     self.wrapper:training();
 
     -- collect garbage
     collectgarbage();
 end
+
 ---------------------------------------------------------------------
 -- generating answers for questions
 function VisDialAModel:generateAnswers(dataloader, dtype, genParams)
@@ -272,7 +169,7 @@ function VisDialAModel:generateAnswers(dataloader, dtype, genParams)
     local temperature = genParams.temperature or 1.0;
     local maxTimeSteps = genParams.maxTimeSteps or self.params.maxAnsLen;
     local numConvs = genParams.numConvs or 2;
-    
+
     -- change the model to evaluate model
     self.wrapper:evaluate();
 
@@ -296,20 +193,10 @@ function VisDialAModel:generateAnswers(dataloader, dtype, genParams)
         -- one pass through the encoder
         -- check for additional attributes to save
         local modelSave = self:encoderPass(batch);
-        
+
         -- start generation for each time step
         local answerIn = torch.Tensor(1, numQues):fill(startToken);
         local answer = {answerIn:t():double()};
-        -- print(self.encoder.modules)
-        -- for i = 1, #self.encoder.modules do
-            -- print(i, self.encoder.modules[i])
-        -- end
-        -- memory-im-hist, 22 is maskSoftmax
-        -- local att_weights = self.encoder.modules[22].output:double()
-        -- memory-hist, 18 is maskSoftmax
-        -- local att_weights = self.encoder.modules[18].output:double()
-
-        -- self.decoder:remember()
 
         for timeStep = 1, maxTimeSteps do
             -- one pass through the decoder
@@ -335,8 +222,6 @@ function VisDialAModel:generateAnswers(dataloader, dtype, genParams)
             answerIn:copy(nextToken);
         end
 
-        -- self.decoder:forget()
-
         -- join all the outputs
         answer = nn.JoinTable(-1):forward(answer);
 
@@ -349,11 +234,7 @@ function VisDialAModel:generateAnswers(dataloader, dtype, genParams)
             local quesText = utils.idToWords(quesWords, dataloader.ind2word);
             local ansText = utils.idToWords(ansWords, dataloader.ind2word);
 
-            --local questionAttWeight = nn.SplitTable(1):forward(att_weights[quesId]);
-            --table.insert(threadAnswers, {question=quesText, answer=ansText, attention=questionAttWeight});
             table.insert(threadAnswers, {question=quesText, answer=ansText});
-            --print(string.format('Q-%d: %s\nA-%d: %s', quesId, quesText, quesId,
-                                                                    --ansText))
         end
         table.insert(answerTable, threadAnswers);
         -- check if there is additional save

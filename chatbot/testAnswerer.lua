@@ -1,7 +1,3 @@
--- Code to test svqa mode
--- author: satwik kottur
--------------------------------------------------------------------------------
--- S-VQA training model using VQA
 require 'nn'
 require 'nngraph'
 require 'io'
@@ -13,8 +9,6 @@ utils = dofile('utils.lua');
 -- Input arguments and options
 -------------------------------------------------------------------------------
 cmd = torch.CmdLine()
-cmd:text()
-cmd:text('Test the s-vqa model for retrieval')
 cmd:text()
 cmd:text('Options')
 -- Data input settings
@@ -59,7 +53,7 @@ print(opt.model_name)
 
 -- add flags for various configurations
 -- additionally check if its imitation of discriminative model
-if string.match(opt.model_name, 'hist') then 
+if string.match(opt.model_name, 'hist') then
     opt.useHistory = true;
     if string.match(opt.model_name, 'disc') then
         opt.separateCaption = true;

@@ -20,8 +20,6 @@ function lstm.EncoderNet(self, params)
     -- word branch, along with embedding layer
     self.wordEmbed = nn.LookupTableMaskZero(params.vocabSize, params.embedSize);
     local wordBranch = nn.Sequential():add(nn.SelectTable(1)):add(self.wordEmbed);
-    -- -- add additional dropout after embedding
-    -- --wordBranch:add(nn.Dropout(0.5));
 
     -- language model
     enc.rnnLayers = {};
@@ -46,31 +44,20 @@ function lstm.EncoderNet(self, params)
     enc.histLayers = {};
     -- number of layers to read the history
     for layer = 1, params.numLayers do
-        local inputSize = (layer == 1) and params.embedSize 
+        local inputSize = (layer == 1) and params.embedSize
                                     or params.rnnHiddenSize;
-        enc.histLayers[layer] = nn.SeqLSTM(inputSize, params.rnnHiddenSize); 
+        enc.histLayers[layer] = nn.SeqLSTM(inputSize, params.rnnHiddenSize);
         enc.histLayers[layer]:maskZero();
 
         histBranch:add(enc.histLayers[layer]);
     end
     histBranch:add(nn.Select(1, -1));
 
-    -- image branch
-    -- embedding for images
-    -- local imgPar = nn.ParallelTable()
-                        -- :add(nn.Identity())
-                        -- :add(nn.Sequential()
-                                -- :add(nn.Dropout(0.5))
-                                -- :add(nn.Linear(params.imgFeatureSize,
-                                                -- params.imgEmbedSize)));
     -- select words and image only
     local imageBranch = nn.Sequential()
                             :add(nn.SelectTable(3))
                             :add(nn.Dropout(0.5))
                             :add(nn.Linear(params.imgFeatureSize, params.imgEmbedSize))
-                            -- :add(nn.NarrowTable(1, 2)) 
-                            -- :add(imgPar)
-                            -- :add(nn.MaskTime(params.imgEmbedSize));
 
     -- add concatTable and join
     concat:add(wordBranch)
@@ -81,18 +68,8 @@ function lstm.EncoderNet(self, params)
     -- another concat table
     local concat2 = nn.ConcatTable();
 
-    -- select words + history + image
-    -- local wordHistImageBranch = nn.Sequential()
-                                -- :add(nn.NarrowTable(1, 2))
-                                -- :add(nn.JoinTable(-1))
-
-    -- -- add both the branches (wordImage, select history) to concat2
-    -- concat2:add(wordHistImageBranch):add(nn.SelectTable(1));
-    -- enc:add(concat2);
     enc:add(nn.JoinTable(1, 1))
-    -- -- join both the tensors
-    -- enc:add(nn.JoinTable(-1));
-    --change the view of the data
+    -- change the view of the data
     -- always split it back wrt batch size and then do transpose
     enc:add(nn.View(-1, params.maxQuesCount, 2*params.rnnHiddenSize + params.imgEmbedSize));
     enc:add(nn.Transpose({1, 2}));
@@ -114,8 +91,6 @@ function lstm.DecoderNet(self, params)
     -- use the same embedding for both encoder and decoder lstm
     local embedNet = self.wordEmbed:clone('weight', 'bias', 'gradWeight', 'gradBias');
     dec:add(embedNet);
-    -- add additional dropout after embedding
-    --dec:add(nn.Dropout(0.5));
 
     dec.rnnLayers = {};
     -- check if decoder has different hidden size
@@ -131,7 +106,7 @@ function lstm.DecoderNet(self, params)
     dec:add(nn.Sequencer(nn.MaskZero(
                             nn.Linear(hiddenSize, params.vocabSize), 1)))
     dec:add(nn.Sequencer(nn.MaskZero(nn.LogSoftMax(), 1)))
-    
+
     return dec;
 end
 -------------------------------------------------------------------------------

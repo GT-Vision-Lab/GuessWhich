@@ -22,13 +22,13 @@ function RLTorchModel:__init(inputJson, qBotpath, aBotpath, gpuid, backend, imfe
     self.aBotpath = aBotpath
     self.gpuid = gpuid
     self.backend = backend
-    
+
     -- Create options table to initialize dataloader
     self.opt = {}
     self.opt['input_json'] = inputJson
     self.dataloader = dofile('dataloader.lua')
     self.dataloader:initialize(self.opt)
-    
+
     -- Initial seeds
     torch.manualSeed(1234)
     if self.gpuid >= 0 then
@@ -41,28 +41,28 @@ function RLTorchModel:__init(inputJson, qBotpath, aBotpath, gpuid, backend, imfe
     else
         torch.setdefaulttensortype('torch.DoubleTensor')
     end
-    
+
     -- Load Questioner and Answerer model
     self.questionerModel = torch.load(qBotpath)
     self.answererModel = torch.load(aBotpath)
-    
+
     -- transfer all options to model
     self.questionerModelParams = self.questionerModel.modelParams
     self.answererModelParams = self.answererModel.modelParams
-    
+
     -- changing savepath in checkpoints
     self.questionerModelParams['model_name'] = 'im-hist-enc-dec-questioner'
     self.answererModelParams['model_name'] = 'im-hist-enc-dec-answerer'
-    
+
     -- Print Questioner and Answerer
     -- print('Questioner', self.questionerModelParams.model_name)
     -- print('Answerer', self.answererModelParams.model_name)
-    
+
     -- Add flags for various configurations
     if string.match(self.questionerModelParams.model_name, 'hist') then self.questionerModelParams.useHistory = true; end
     if string.match(self.answererModelParams.model_name, 'hist') then self.answererModelParams.useHistory = true; end
     if string.match(self.answererModelParams.model_name, 'im') then self.answererModelParams.useIm = true; end
-    
+
     -- Setup both Qbot and Abot
     -- print('Using models from'.. self.questionerModelParams.model_name)
     -- print('Using models from'.. self.answererModelParams.model_name)
@@ -93,8 +93,8 @@ function RLTorchModel:abot(imgId, history, question)
     imgFeat = torch.repeatTensor(imgFeat, 10, 1)
     -- Concatenate history
     local history_concat = ''
-    for i=1, #history do 
-        history_concat = history_concat .. history[i] .. ' |||| ' 
+    for i=1, #history do
+        history_concat = history_concat .. history[i] .. ' |||| '
     end
     -- -- Remove <START> from history
     -- history_concat = history_concat:gsub('<START>','')
@@ -144,7 +144,7 @@ function RLTorchModel:abot(imgId, history, question)
     end
     -- Generate answer; returns a table :-> {ansWords, aLen, ansText}
     local ans_struct = self.aModel:generateSingleAnswer(self.dataloader, {hist_tensor, imgFeat, ques_tensor}, {beamSize = 5}, iter)
-    -- Use answer-text to concatenate things to show at subject's end 
+    -- Use answer-text to concatenate things to show at subject's end
     local answer = ans_struct[3]
     local result = {}
     result['answer'] = answer
@@ -157,50 +157,3 @@ function RLTorchModel:abot(imgId, history, question)
     result['input_img'] = imgId
     return result
 end
-
-
-function RLTorchModel:qbot(history, round_ID)
-    -- Concatenate history
-    local history_concat = ''
-    for i=1, #history do
-        history_concat = history_concat .. history[i] .. ' ||||'
-    end
-    -- get pre-processed history
-    local cmd = 'python prepro_ques.py -history "' .. history_concat .. '"'
-    os.execute(cmd)
-    local file = io.open('ques_feat.json', 'r')
-    if file then 
-        json_f = file:read('*a')
-        h_feats = cjson.decode(json_f)
-        file:close()
-    end
-    -- Get history tensor and hist_len vector
-    local hist_tensor = torch.LongTensor(10,40):zero()
-    local hist_len = torch.zeros(10)
-    for i=1, #h_feats.history do
-        hist_tensor[i] = utils.wordsToId(h_feats.history[i], self.dataloader.word2ind, 40)
-        hist_len[i] = hist_tensor[i][hist_tensor[i]:ne(0)]:size(1)
-    end
-    -- Right align the history
-    hist_tensor = utils.rightAlign(hist_tensor, hist_len)
-    -- Shift to GPU
-    if self.gpuid >= 0 then
-        hist_tensor = hist_tensor:cuda()
-    end
-    -- Transpose history
-    hist_tensor = hist_tensor:t()
-    -- Gnerate question
-    local ques_struct = self.qModel:generateSingleQuestion(self.dataloader, hist_tensor, {beamSize = 5}, round_ID)
-    -- Get question-text
-    local question = ques_struct[3]
-    local result = {}
-    result['question'] = question:gsub('<START>','')
-    if history_concat == '||||' then
-        history_concat = ''
-    end
-    result['history'] = history_concat .. question
-    result['history'] = string.gsub(result['history'], '<START>', '') .. ' <END>'
-    result['predicted_fc7'] = ques_struct[4][round_ID]
-    return result
-end
-

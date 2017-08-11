@@ -1,11 +1,9 @@
 cmd = torch.CmdLine()
-cmd:text('Train the s-vqa model for retrieval')
 cmd:text()
 cmd:text('Options')
 -- Data input settings
 cmd:option('-input_img_h5','data/visdial_0.5/data_img.h5','h5file path with image feature')
 cmd:option('-input_ques_h5','data/visdial_0.5/chat_processed_data.h5','h5file file with preprocessed questions')
-cmd:option('-input_ques_opts_h5','utils/working/qoptions_cap_qatm1mean_sample25k_visdial_0.5_test.h5','h5file file with preprocessed question options')
 cmd:option('-input_json','data/visdial_0.5/chat_processed_params.json','json path with info and vocab')
 
 cmd:option('-save_path', 'models/', 'path to save the model and checkpoints')
@@ -48,14 +46,14 @@ local opts = cmd:parse(arg);
 local curTime = os.date('*t', os.time());
 -- create another folder to avoid clutter
 local modelPath = string.format('models/model-%d-%d-%d-%d:%d:%d-%s/',
-                                curTime.month, curTime.day, curTime.year, 
+                                curTime.month, curTime.day, curTime.year,
                                 curTime.hour, curTime.min, curTime.sec, opts.model_name)
 if opts.save_path == 'models/' then opts.save_path = modelPath end;
 -- add useMI flag if the metric is mutual information
 if opts.metric == 'mi' then opts.useMI = true; end
 if opts.bidirectional == 0 then opts.useBi = nil; else opts.useBi = true; end
 -- additionally check if its imitation of discriminative model
-if string.match(opts.model_name, 'hist') then 
+if string.match(opts.model_name, 'hist') then
     opts.useHistory = true;
     if string.match(opts.model_name, 'disc') then
         opts.separateCaption = true;

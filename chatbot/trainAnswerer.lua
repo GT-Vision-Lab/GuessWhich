@@ -1,7 +1,3 @@
--- Code to train svqa mode
--- author: satwik kottur
--------------------------------------------------------------------------------
--- S-VQA training model using VQA
 require 'nn'
 require 'nngraph'
 require 'io'
@@ -93,11 +89,11 @@ runningLoss = 0;
 for iter = 1, modelParams.numEpochs * modelParams.numIterPerEpoch do
     -- forward and backward propagation
     svqaModel:trainIteration(dataloader);
-    
+
     -- evaluate on val and save model every epoch
     if iter % (modelParams.numIterPerEpoch) == 0 then
         local currentEpoch = iter / modelParams.numIterPerEpoch;
-        
+
         -- save model and optimization parameters
         torch.save(string.format(modelPath .. 'model_epoch_%d.t7', currentEpoch),
                                                     {modelW = svqaModel.wrapperW,
@@ -109,14 +105,14 @@ for iter = 1, modelParams.numEpochs * modelParams.numIterPerEpoch do
         svqaModel:retrieve(dataloader, 'val');
         --svqaModel:retrieve(dataloader, 'val', {0.0, 0.1, 0.5, 1.0});
     end
-    
+
     -- print after every few iterations
     if iter % 100 == 0 then
         local currentEpoch = iter / modelParams.numIterPerEpoch;
-        
+
         -- print current time, running average, learning rate, iteration, epoch
         print(string.format('[%s][Epoch:%.02f][Iter:%d] Loss: %.02f ; lr : %f',
-                                os.date(), currentEpoch, iter, runningLoss, 
+                                os.date(), currentEpoch, iter, runningLoss,
                                             svqaModel.optims.learningRate))
     end
     if iter % 10 == 0 then collectgarbage(); end
