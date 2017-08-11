@@ -29,6 +29,106 @@ function dataloader:initialize(opt, subsets)
         ind2word[ind] = word;
     end
     dataloader['ind2word'] = ind2word;
+
+    -- read questions, answers and options
+    print('DataLoader loading h5 file: ', opt.input_ques_h5)
+    local quesFile = hdf5.open(opt.input_ques_h5, 'r');
+
+    print('DataLoader loading h5 file: ', opt.input_img_h5)
+    local imgFile = hdf5.open(opt.input_img_h5, 'r');
+    -- number of threads
+    self.numThreads = {};
+
+    for _, dtype in pairs(subsets) do
+        -- read question related information
+        self[dtype..'_ques'] = quesFile:read('ques_'..dtype):all();
+        self[dtype..'_ques_len'] = quesFile:read('ques_length_'..dtype):all();
+        self[dtype..'_ques_count'] = quesFile:read('ques_count_'..dtype):all();
+
+        -- read answer related information
+        self[dtype..'_ans'] = quesFile:read('ans_'..dtype):all();
+        self[dtype..'_ans_len'] = quesFile:read('ans_length_'..dtype):all();
+        self[dtype..'_ans_ind'] = quesFile:read('ans_index_'..dtype):all():long();
+
+        -- read image list, if image features are needed
+        if opt.useIm then
+            print('Reading image features ..')
+            local imgFeats = imgFile:read('/images_'..dtype):all();
+
+            -- Normalize the image feature(if needed)
+            if opt.img_norm == 1 then
+                print('Normalizing image features..')
+                local nm = torch.sqrt(torch.sum(torch.cmul(imgFeats, imgFeats), 2));
+                imgFeats = torch.cdiv(imgFeats, nm:expandAs(imgFeats)):float();
+            end
+            self[dtype..'_img_fv'] = imgFeats;
+            -- TODO: make it 1 indexed in processing code
+            -- currently zero indexed, adjust manually
+            self[dtype..'_img_pos'] = quesFile:read('img_pos_'..dtype):all():long();
+            self[dtype..'_img_pos'] = self[dtype..'_img_pos'] + 1;
+        end
+
+        -- print information for data type
+        print(string.format('%s:\n\tNo. of threads: %d\n\tNo. of rounds: %d'..
+                            '\n\tMax ques len: %d'..'\n\tMax ans len: %d\n',
+                                dtype, self[dtype..'_ques']:size(1),
+                                        self[dtype..'_ques']:size(2),
+                                        self[dtype..'_ques']:size(3),
+                                        self[dtype..'_ans']:size(2)));
+        -- record some stats
+        if dtype == 'train' then
+            self.numTrainThreads = self['train_ques']:size(1);
+            self.numThreads['train'] = self.numTrainThreads;
+        end
+        if dtype == 'test' then
+            self.numTestThreads = self['test_ques']:size(1);
+            self.numThreads['test'] = self.numTestThreads;
+        end
+        if dtype == 'val' then
+            self.numValThreads = self['val_ques']:size(1);
+            self.numThreads['val'] = self.numValThreads;
+        end
+
+        -- record the options only for test and val
+        if dtype == 'val' or dtype == 'test' then
+            self[dtype..'_opt'] = quesFile:read('opt_'..dtype):all():long();
+            self[dtype..'_opt_len'] = quesFile:read('opt_length_'..dtype):all();
+            self[dtype..'_opt_list'] = quesFile:read('opt_list_'..dtype):all();
+            self[dtype..'_opt_prob'] = torch.Tensor(self[dtype..'_opt_len']:size());
+        end
+
+        -- assume similar stats across multiple data subsets
+        -- maximum number of questions per image, ideally 10
+        self.maxQuesCount = self[dtype..'_ques']:size(2);
+        -- maximum length of question
+        self.maxQuesLen = self[dtype..'_ques']:size(3);
+        -- maximum length of answer
+        self.maxAnsLen = self[dtype..'_ans']:size(2);
+        -- number of options, if read
+        if self[dtype..'_opt'] then
+            self.numOptions = self[dtype..'_opt']:size(3);
+        end
+
+        -- if history is needed
+        if opt.useHistory then
+            self[dtype..'_cap'] = quesFile:read('cap_'..dtype):all():long();
+            self[dtype..'_cap_len'] = quesFile:read('cap_length_'..dtype):all();
+        end
+    end
+    -- done reading, close files
+    quesFile:close();
+    imgFile:close();
+
+    -- take desired flags/values from opt
+    self.useBi = opt.useBi;
+    self.useHistory = opt.useHistory;
+    self.useIm = opt.useIm;
+    self.separateCaption = opt.separateCaption;
+    self.maxHistoryLen = opt.maxHistoryLen or 60;
+
+    -- prepareDataset for training
+    for _, dtype in pairs(subsets) do self:prepareDataset(dtype); end
+
 end
 
 -- method to prepare questions and answers for retrieval
