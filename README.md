@@ -105,7 +105,7 @@ You are all set now. Visit http://127.0.0.1:8000 and you will have your demo run
 If you find this code useful, consider citing our work:
 
 ```
-@article{visdial_eval,
+@inproceedings{visdial_eval,
   title={Evaluating Visual Conversational Agents via Cooperative Human-AI Games},
   author={Prithvijit Chattopadhyay and Deshraj Yadav and Viraj Prabhu and Arjun Chandrasekaran and Abhishek Das and Stefan Lee and Dhruv Batra and Devi Parikh},
   booktitle={Proceedings of the Fifth AAAI Conference on Human Computation and Crowdsourcing (HCOMP)},
