@@ -2,7 +2,6 @@ require 'nn'
 require 'nngraph'
 require 'io'
 require 'rnn'
-require 'MaskTime'
 utils = dofile('utils.lua');
 
 -------------------------------------------------------------------------------

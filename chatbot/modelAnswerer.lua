@@ -9,7 +9,7 @@ local VisDialAModel = torch.class('VisDialAModel');
 
 -- initialize
 function VisDialAModel:__init(params)
-    print('Setting up SVQA model..\n');
+    print('Setting up VisDial model..\n');
     self.params = params;
     -- print(params)
     -- build the model - encoder, decoder and answerNet
@@ -32,8 +32,6 @@ function VisDialAModel:__init(params)
     -- wrap the models
     self.wrapper = nn.Sequential():add(enc):add(dec);
 
-    -- initialize weights
-    self.wrapper = require('weight-init')(self.wrapper, 'xavier');
     -- ship to gpu if necessary
     if params.gpuid >= 0 then
         self.wrapper = self.wrapper:cuda();

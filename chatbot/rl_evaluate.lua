@@ -5,8 +5,6 @@ require 'nn'
 require 'nngraph'
 require 'cjson'
 require 'rnn'
-require 'MaskTime'
-require 'modelQuestioner'
 require 'modelAnswerer'
 utils = dofile('utils.lua')
 
