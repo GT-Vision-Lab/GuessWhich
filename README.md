@@ -4,7 +4,9 @@
 
 **Evaluating Visual Conversational Agents via Cooperative Human-AI Games**  
 Prithvijit Chattopadhyay*, Deshraj Yadav*, Viraj Prabhu, Arjun Chandrashekharan, Abhishek Das, Stefan Lee, Dhruv Batra, Devi Parikh  
-[HCOMP 2017][4] (Oral)
+[HCOMP 2017][4]
+
+This repository contains code for setting up the **GuessWhich Game** along with Amazon Mechinical Turk (AMT) integration for real time data collection. The data collection settings can be changed easily by modifying certain configurations defined [here](https://github.com/VT-vision-lab/GuessWhich/blob/master/amt/constants.py).
 
 ## Abstract
 
