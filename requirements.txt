@@ -4,7 +4,7 @@ autobahn==0.16.0
 backports.ssl-match-hostname==3.5.0.1
 channels==0.17.2
 daphne==0.15.0
-Django==1.10.1
+Django==1.11.28
 h5py==2.6.0
 msgpack-python==0.4.8
 MySQL-python==1.2.5
