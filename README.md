@@ -94,8 +94,8 @@ python manage.py migrate
 Open 3 different terminal sessions and run the following commands:
 
 ```shell
-cd chatbot && python sl_evalaute.py
-cd chatbot && python rl_evalaute.py
+cd chatbot && python sl_worker.py
+cd chatbot && python rl_worker.py
 python manage.py runserver
 ```
 
