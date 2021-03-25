@@ -14,7 +14,7 @@ pika==0.10.0
 Pillow==3.3.0
 psycopg2==2.7.1
 PyTorch===4.1.1-SNAPSHOT
-PyYAML==3.12
+PyYAML==5.4
 redis==2.10.5
 requests==2.13.0
 scipy==0.17.1
