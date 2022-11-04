@@ -20,7 +20,7 @@ requests==2.13.0
 scipy==0.17.1
 six==1.10.0
 tqdm==4.8.4
-Twisted==16.4.1
+Twisted==22.10.0
 txaio==2.5.1
 uWSGI==2.0.13.1
 websocket-client==0.37.0
